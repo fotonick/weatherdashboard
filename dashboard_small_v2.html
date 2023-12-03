@@ -2,202 +2,6 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">
-    <script src="https://code.jquery.com/jquery-3.5.0.js"></script>
-    <script>
-      var purpleairAPI = "https://api.purpleair.com/v1/sensors?fields=name%2Clast_seen%2Ctemperature%2Cpm2.5%2Cpm2.5_10minute%2Cpm2.5_30minute&show_only=70751%2C125745%2C89449";
-
-      function convertdate(d){
-
-        var tstamp = new Date(d * 1000).toLocaleString('en-US', {
-              weekday: 'short', // long, short, narrow
-              day: 'numeric', // numeric, 2-digit
-              year: 'numeric', // numeric, 2-digit
-              month: 'long', // numeric, 2-digit, long, short, narrow
-              hour: 'numeric', // numeric, 2-digit
-              minute: 'numeric', // numeric, 2-digit
-            });
-
-        return tstamp;
-      }
-
-      function pulldata(){
-        jQuery.ajaxSetup({headers: {'X-API-Key': "" }});
-        $.getJSON( purpleairAPI, function(data){
-          console.log(data);
-          // last modified
-          var lastmod1 = convertdate(data.data[0][1]);
-          var lastmod2 = convertdate(data.data[1][1]);
-          var lastmod3 = convertdate(data.data[2][1]);
-
-          $(".wilderfield .lastupdate").text(lastmod1);
-          $(".winside .lastupdate").text(lastmod2);
-          $(".squidcave .lastupdate").text(lastmod3);
-
-          // Temperature
-          var temp1 = data.data[0][3]; // wilderfield
-          var temp2 = data.data[1][3]; // wilderfield inside 
-          var temp3 = data.data[2][3]; // squid cave
-
-          $(".wilderfield .temp").text(temp1);
-          $(".winside .temp").text(temp2);
-          $(".squidcave .temp").text(temp3);
-
-          settempcolor(".wilderfield .temp", temp1);
-          settempcolor(".winside .temp", temp2);
-          settempcolor(".squidcave .temp", temp3);
-          
-          // Current AQI
-          var caqi1 = aqiFromPM(data.data[0][4]); // wilderfield
-          var caqi2 = aqiFromPM(data.data[1][4]); // wilderfield inside 
-          var caqi3 = aqiFromPM(data.data[2][4]); // squid cave
-
-          $(".wilderfield .currentaqi").text(caqi1);
-          $(".winside .currentaqi").text(caqi2);
-          $(".squidcave .currentaqi").text(caqi3);
-
-          setblockcolor(".wilderfield .currentaqi", caqi1);
-          setblockcolor(".winside .currentaqi", caqi2);
-          setblockcolor(".squidcave .currentaqi", caqi3);
-          
-          // 10 min avg AQI
-          var tenminaqi1 = aqiFromPM(data.data[0][5]); // wilderfield
-          var tenminaqi2 = aqiFromPM(data.data[1][5]); // wilderfield inside 
-          var tenminaqi3 = aqiFromPM(data.data[2][5]); // squid cave
-
-          $(".wilderfield .10minaqi").text(tenminaqi1);
-          $(".winside .10minaqi").text(tenminaqi2);
-          $(".squidcave .10minaqi").text(tenminaqi3);
-
-          setblockcolor(".wilderfield .10minaqi", tenminaqi1);
-          setblockcolor(".winside .10minaqi", tenminaqi2);
-          setblockcolor(".squidcave .10minaqi", tenminaqi3);
-
-          // stale data
-          // wilderfield
-          if(data.data[0][1]+1800 < data.time_stamp) {
-            $(".wilderfield .currentaqi").parent().css({"background": "grey"});
-            $(".wilderfield .10minaqi").parent().css({"background": "grey"});
-            $(".wilderfield .temp").parent().css({"background": "grey"});
-          }
-          // wilderfield inside
-          if(data.data[1][1]+1800 < data.time_stamp) {
-            $(".winside .currentaqi").parent().css({"background": "grey"});
-            $(".winside .10minaqi").parent().css({"background": "grey"});
-            $(".winside .temp").parent().css({"background": "grey"});
-          }
-          // squid cave
-          if(data.data[2][1]+1800 < data.time_stamp) {
-            $(".squidcave .currentaqi").parent().css({"background": "grey"});
-            $(".squidcave .10minaqi").parent().css({"background": "grey"});
-            $(".squidcave .temp").parent().css({"background": "grey"});
-          }
-
-        });
-      }  
-      pulldata();
-
-      function aqiFromPM(pm) {
-        if (isNaN(pm)) return "-";
-        if (pm == undefined) return "-";
-        if (pm < 0) return pm;
-        if (pm > 1000) return "-";
-        if (pm > 350.5) {
-          return calcAQI(pm, 500, 401, 500, 350.5);
-        } else if (pm > 250.5) {
-          return calcAQI(pm, 400, 301, 350.4, 250.5);
-        } else if (pm > 150.5) {
-          return calcAQI(pm, 300, 201, 250.4, 150.5);
-        } else if (pm > 55.5) {
-          return calcAQI(pm, 200, 151, 150.4, 55.5);
-        } else if (pm > 35.5) {
-          return calcAQI(pm, 150, 101, 55.4, 35.5);
-        } else if (pm > 12.1) {
-          return calcAQI(pm, 100, 51, 35.4, 12.1);
-        } else if (pm >= 0) {
-          return calcAQI(pm, 50, 0, 12, 0);
-        } else {
-          return undefined;
-        }
-      }
-
-      function calcAQI(Cp, Ih, Il, BPh, BPl) {
-        // The AQI equation https://forum.airnowtech.org/t/the-aqi-equation/169
-        var a = Ih - Il;
-        var b = BPh - BPl;
-        var c = Cp - BPl;
-        return Math.round((a / b) * c + Il);
-      }
-      
-      function setblockcolor(blockid, value) {
-        if (value < 15) {
-          $(blockid).parent().css({
-            "background": "lightgreen"
-          });
-        } else if (value < 20) {
-          $(blockid).parent().css({
-            "background": "yellow"
-          });
-        } else if (value < 30) {
-          $(blockid).parent().css({
-            "background": "orange"
-          });
-        } else if (value < 40) {
-          $(blockid).parent().css({
-            "background": "red"
-          });
-        } else if (value < 50){
-          $(blockid).parent().css({
-            "background": "mediumpurple"
-          });
-        } else {
-          $(blockid).parent().css({
-            "background": "saddlebrown"
-          });
-    
-        }
-      }
-
-      function settempcolor(blockid, value) {
-        if (value < 50) {
-          $(blockid).parent().css({
-            "background": "purple"
-          });
-        } else if (value < 65) {
-          $(blockid).parent().css({
-            "background": "lavender"
-          });
-        } else if (value < 70) {
-          $(blockid).parent().css({
-            "background": "lightblue"
-          });
-        } else if (value < 80) {
-          $(blockid).parent().css({
-            "background": "lightgreen"
-          });
-        } else if (value < 85) {
-          $(blockid).parent().css({
-            "background": "yellow"
-          });
-        } else if (value < 90) {
-          $(blockid).parent().css({
-            "background": "orange"
-          });
-        } else if (value < 100) {
-          $(blockid).parent().css({
-            "background": "red"
-          });
-        } else {
-          $(blockid).parent().css({
-            "background": "mediumpurple"
-          });
-        }
-      }
-
-      var intervalID = window.setInterval(function() {
-        pulldata();
-      }, 30000);
-    </script>
-
     <style type="text/css">
 
       body {
@@ -337,4 +141,92 @@
       </div>
     </div>   
   </body>
+  <script>
+    async function fetch_data(api_url) {
+      const response = await fetch(api_url);
+      if (!response.ok) {
+        console.log("Failed to fetch with HTTP error ", response.status, ": ", response.statusText, ".");
+        return null;
+      }
+      return await response.json();
+    }
+
+    function update_body(data, div_classname) {
+      const div = document.getElementsByClassName(div_classname)[0];
+      const lastUpdateDate = new Date(data.response_date * 1000);
+      div.getElementsByClassName("lastupdate")[0].innerHTML = lastUpdateDate.toLocaleString();
+      const temp_node = div.getElementsByClassName("temp")[0];
+      temp_node.innerHTML = data.current_temp_f;
+      const aqi_node = div.getElementsByClassName("currentaqi")[0];
+      aqi_node.innerHTML = data["pm2.5_aqi"];
+      // const aqi_ave_node = div.getElementsByClassName("10minaqi")[0];
+      // aqi_ave_node.innerHTML = data.pm2.5_aqi; // Sensor only has instantaneous.
+
+      // set color
+      if ((Date.now() - lastUpdateDate.getTime()) < 1800000) {  // half an hour
+        temp_node.parentElement.style.backgroundColor = mapTempColor(data.current_temp_f);
+        aqi_node.parentElement.style.backgroundColor = mapAQIColor(data["pm2.5_aqi"]);
+        // aqi_ave_node.parentElement.style.backgroundColor = mapAQIColor(data["pm2.5_aqi"]);
+      } else { // stale
+        temp_node.parentElement.style.backgroundColor = "grey";
+        aqi_node.parentElement.style.backgroundColor = "grey";
+        // aqi_ave_node.parentElement.style.backgroundColor = "grey";
+      }
+    }
+
+    function update_dashboard() {      
+      fetch_data("http://purpleair-9826.localdomain/json?live=true").then((data) => {
+        // Outdoor sensor has two particle counters. Hack it for now.
+        data["pm2.5_aqi"] = (data["pm2.5_aqi"] + data["pm2.5_aqi_b"]) / 2;
+        update_body(data, "wilderfield");
+      });
+      fetch_data("http://purpleair-791d.localdomain/json?live=true").then((data) => {
+        update_body(data, "winside");
+      });
+      fetch_data("http://purpleair-f6ca.localdomain/json?live=true").then((data) => {
+        update_body(data, "squidcave");
+      });
+    }
+
+    function mapAQIColor(value) {
+      if (value < 15) {
+        return "lightgreen";
+      } else if (value < 20) {
+        return "yellow";
+      } else if (value < 30) {
+        return "orange";
+      } else if (value < 40) {
+        return "red";
+      } else if (value < 50){
+        return "mediumpurple";
+      } else {
+        return "saddlebrown";
+      }
+    }
+
+    function mapTempColor(value) {
+      if (value < 50) {
+        return "purple";
+      } else if (value < 65) {
+        return "lavender";
+      } else if (value < 70) {
+        return "lightblue";
+      } else if (value < 80) {
+        return "lightgreen";
+      } else if (value < 85) {
+        return "yellow";
+      } else if (value < 90) {
+        return "orange";
+      } else if (value < 100) {
+        return "red";
+      } else {
+        return "mediumpurple";
+      }
+    }
+
+    update_dashboard();
+    const intervalID = window.setInterval(function() {
+      update_dashboard();
+    }, 30000);
+  </script>
 </html>
