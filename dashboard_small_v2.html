@@ -142,6 +142,29 @@
     </div>   
   </body>
   <script>
+    const MIN_HISTORY = 4;  // don't report any 10-minute average until we have MIN_HISTORY samples
+
+    var wilderfield_aqi_history = [];  // array of [timestamp, PM2.5 AQI]
+    var winside_aqi_history = [];  // array of [timestamp, PM2.5 AQI]
+    var squidcave_aqi_history = [];  // array of [timestamp, PM2.5 AQI]
+
+    function update_moving_average(timestamp, value, history) {
+      // Maintain ten minutes of unique values
+      // add new
+      history.push([timestamp, value]);
+
+      // remove old
+      while (history.length > 0 && (timestamp - history[0][0]) > 600) { // ten minutes
+        history.shift();
+      }
+
+      if (history.length >= MIN_HISTORY) {
+        return Math.round(history.reduce((total, tuple) => total + tuple[1], 0) / history.length);
+      } else {
+        return null;
+      }
+    }
+
     async function fetch_data(api_url) {
       const response = await fetch(api_url);
       if (!response.ok) {
@@ -159,31 +182,38 @@
       temp_node.innerHTML = data.current_temp_f;
       const aqi_node = div.getElementsByClassName("currentaqi")[0];
       aqi_node.innerHTML = data["pm2.5_aqi"];
-      // const aqi_ave_node = div.getElementsByClassName("10minaqi")[0];
-      // aqi_ave_node.innerHTML = data.pm2.5_aqi; // Sensor only has instantaneous.
+      const aqi_ave_node = div.getElementsByClassName("10minaqi")[0];
+      aqi_ave_node.innerHTML = data["pm2.5_aqi_ave"];
 
-      // set color
+      //  color
       if ((Date.now() - lastUpdateDate.getTime()) < 1800000) {  // half an hour
         temp_node.parentElement.style.backgroundColor = mapTempColor(data.current_temp_f);
         aqi_node.parentElement.style.backgroundColor = mapAQIColor(data["pm2.5_aqi"]);
-        // aqi_ave_node.parentElement.style.backgroundColor = mapAQIColor(data["pm2.5_aqi"]);
+        aqi_ave_node.parentElement.style.backgroundColor = mapAQIColor(data["pm2.5_aqi"]);
       } else { // stale
         temp_node.parentElement.style.backgroundColor = "grey";
         aqi_node.parentElement.style.backgroundColor = "grey";
-        // aqi_ave_node.parentElement.style.backgroundColor = "grey";
+        aqi_ave_node.parentElement.style.backgroundColor = "grey";
       }
     }
 
-    function update_dashboard() {      
+    function timestamp_now() {
+      return Math.round(Date.now() / 1000);
+    }
+
+    function update_dashboard() {
       fetch_data("http://purpleair-9826.localdomain/json?live=true").then((data) => {
         // Outdoor sensor has two particle counters. Hack it for now.
-        data["pm2.5_aqi"] = (data["pm2.5_aqi"] + data["pm2.5_aqi_b"]) / 2;
+        data["pm2.5_aqi"] = Math.round((data["pm2.5_aqi"] + data["pm2.5_aqi_b"]) / 2);
+        data["pm2.5_aqi_ave"] = update_moving_average(timestamp_now(), data["pm2.5_aqi"], wilderfield_aqi_history);
         update_body(data, "wilderfield");
       });
       fetch_data("http://purpleair-791d.localdomain/json?live=true").then((data) => {
+        data["pm2.5_aqi_ave"] = update_moving_average(timestamp_now(), data["pm2.5_aqi"], winside_aqi_history);
         update_body(data, "winside");
       });
       fetch_data("http://purpleair-f6ca.localdomain/json?live=true").then((data) => {
+        data["pm2.5_aqi_ave"] = update_moving_average(timestamp_now(), data["pm2.5_aqi"], squidcave_aqi_history);
         update_body(data, "squidcave");
       });
     }
@@ -227,6 +257,6 @@
     update_dashboard();
     const intervalID = window.setInterval(function() {
       update_dashboard();
-    }, 30000);
+    }, 10000);
   </script>
 </html>
