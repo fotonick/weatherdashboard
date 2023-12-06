@@ -57,7 +57,6 @@
       }
     </style>
   </head>
-
   <body>
     <div class="wilderfield">
       <div class = "name">
@@ -139,14 +138,21 @@
         </div>
 
       </div>
-    </div>   
+    </div>
+    <div id="log"></div>
   </body>
   <script>
+    // Major Kindle limitation: No anonymous lambdas without the function keyword.
+
     const MIN_HISTORY = 4;  // don't report any 10-minute average until we have MIN_HISTORY samples
 
     var wilderfield_aqi_history = [];  // array of [timestamp, PM2.5 AQI]
     var winside_aqi_history = [];  // array of [timestamp, PM2.5 AQI]
     var squidcave_aqi_history = [];  // array of [timestamp, PM2.5 AQI]
+
+    function sum(total, tuple) {
+      return total + tuple[1];
+    }
 
     function update_moving_average(timestamp, value, history) {
       // Maintain ten minutes of unique values
@@ -159,19 +165,36 @@
       }
 
       if (history.length >= MIN_HISTORY) {
-        return Math.round(history.reduce((total, tuple) => total + tuple[1], 0) / history.length);
+        return Math.round(history.reduce(sum, 0) / history.length);
       } else {
         return null;
       }
+      return 0;
     }
 
-    async function fetch_data(api_url) {
-      const response = await fetch(api_url);
-      if (!response.ok) {
-        console.log("Failed to fetch with HTTP error ", response.status, ": ", response.statusText, ".");
-        return null;
-      }
-      return await response.json();
+    function fetch_data(api_url, data_cb) {
+      const xhr = new XMLHttpRequest();
+      xhr.open("GET", api_url, true);
+      xhr.onload = function (e) {
+        if (xhr.readyState === 4) {
+          if (xhr.status === 200) {
+            var data = JSON.parse(xhr.responseText);
+            data_cb(data);
+          } else {
+            console.error(xhr.statusText);
+          }
+        }
+      };
+      xhr.onerror = function (e) {
+        console.error(xhr.statusText);
+      };
+      xhr.send(null);
+    }
+
+    function log(text) {
+      const div = document.getElementById("log");
+      div.innerHTML += text;
+      div.innerHTML += "<br>\n";
     }
 
     function update_body(data, div_classname) {
@@ -202,17 +225,17 @@
     }
 
     function update_dashboard() {
-      fetch_data("http://purpleair-9826.localdomain/json?live=true").then((data) => {
+      fetch_data("http://purpleair-9826.localdomain/json?live=true", function (data) {
         // Outdoor sensor has two particle counters. Hack it for now.
         data["pm2.5_aqi"] = Math.round((data["pm2.5_aqi"] + data["pm2.5_aqi_b"]) / 2);
         data["pm2.5_aqi_ave"] = update_moving_average(timestamp_now(), data["pm2.5_aqi"], wilderfield_aqi_history);
         update_body(data, "wilderfield");
       });
-      fetch_data("http://purpleair-791d.localdomain/json?live=true").then((data) => {
+      fetch_data("http://purpleair-791d.localdomain/json?live=true", function (data) {
         data["pm2.5_aqi_ave"] = update_moving_average(timestamp_now(), data["pm2.5_aqi"], winside_aqi_history);
         update_body(data, "winside");
       });
-      fetch_data("http://purpleair-f6ca.localdomain/json?live=true").then((data) => {
+      fetch_data("http://purpleair-f6ca.localdomain/json?live=true", function (data) {
         data["pm2.5_aqi_ave"] = update_moving_average(timestamp_now(), data["pm2.5_aqi"], squidcave_aqi_history);
         update_body(data, "squidcave");
       });
@@ -255,8 +278,8 @@
     }
 
     update_dashboard();
-    const intervalID = window.setInterval(function() {
+    var intervalID = window.setInterval(function() {
       update_dashboard();
-    }, 10000);
+    }, 30000);
   </script>
 </html>
