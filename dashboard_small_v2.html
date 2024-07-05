@@ -1,15 +1,14 @@
 <!doctype html>
 <html lang="en">
   <head>
-    <meta charset="utf-8">
+    <meta charset="utf-8" />
     <style type="text/css">
-
       body {
         background: black;
         color: white;
       }
 
-      body>div{
+      body > div {
         width: 32%;
         float: left;
       }
@@ -36,107 +35,89 @@
         width:200px;
       }
       */
-      .block div{
+      .block div {
         font-size: 100px;
         /*display: block;*/
       }
 
-      body>div{
+      body > div {
         /*
         border: 1px solid red;
-        */  
+        */
       }
 
-      .name{
+      .name {
         text-align: left;
         margin-left: 10px;
-      } 
+      }
 
-      .lastupdate{
+      .lastupdate {
         padding: 0 10px;
       }
     </style>
   </head>
   <body>
     <div class="wilderfield">
-      <div class = "name">
-        Outside
-      </div>
-      <div class = "lastupdate">
-
-      </div>
-      <div class ="row">
-
-        <div class="block"> Current
-          <div class="currentaqi">
-          </div>
+      <div class="name">Outside</div>
+      <div class="lastupdate"></div>
+      <div class="row">
+        <div class="block">
+          Current
+          <div class="currentaqi"></div>
         </div>
 
-        <div class="block"> 10 Minute
-          <div class="10minaqi">
-          </div>
+        <div class="block">
+          10 Minute
+          <div class="10minaqi"></div>
         </div>
 
-        <div class="block"> Temp
-          <div class="temp">
-          </div>
+        <div class="block">
+          Temp
+          <div class="temp"></div>
         </div>
-
       </div>
     </div>
-    
+
     <div class="squidcave">
-      <div class = "name">
-        Squid Cave
-      </div>
-      <div class = "lastupdate">
+      <div class="name">Squid Cave</div>
+      <div class="lastupdate"></div>
 
-      </div>
-
-      <div class ="row">
-        <div class="block bigblock"> Current
-          <div class="currentaqi">
-          </div>
+      <div class="row">
+        <div class="block bigblock">
+          Current
+          <div class="currentaqi"></div>
         </div>
 
-        <div class="block"> 10 Minute
-          <div class="10minaqi">
-          </div>
+        <div class="block">
+          10 Minute
+          <div class="10minaqi"></div>
         </div>
 
-        <div class="block"> Temp
-          <div class="temp">
-          </div>
+        <div class="block">
+          Temp
+          <div class="temp"></div>
         </div>
-
-
       </div>
     </div>
 
     <div class="winside">
-      <div class = "name">
-        Living Room
-      </div>
-      <div class = "lastupdate">
-
-      </div>
-      <div class ="row">
-
-        <div class="block bigblock"> Current
-          <div class="currentaqi">
-          </div>
+      <div class="name">Living Room</div>
+      <div class="lastupdate"></div>
+      <div class="row">
+        <div class="block bigblock">
+          Current
+          <div class="currentaqi"></div>
         </div>
 
-        <div class="block"> 10 Minute
-          <div class="10minaqi">
-          </div>
+        <div class="block">
+          10 Minute
+          <div class="10minaqi"></div>
         </div>
 
-        <div class="block"> Temp
-          <div class="temp">
-          </div>
+        <div class="block">
+          Temp
+          <div class="temp"></div>
         </div>
-
       </div>
     </div>
     <div id="log"></div>
@@ -144,11 +125,11 @@
   <script>
     // Major Kindle limitation: No anonymous lambdas without the function keyword.
 
-    const MIN_HISTORY = 4;  // don't report any 10-minute average until we have MIN_HISTORY samples
+    const MIN_HISTORY = 4; // don't report any 10-minute average until we have MIN_HISTORY samples
 
-    var wilderfield_aqi_history = [];  // array of [timestamp, PM2.5 AQI]
-    var winside_aqi_history = [];  // array of [timestamp, PM2.5 AQI]
-    var squidcave_aqi_history = [];  // array of [timestamp, PM2.5 AQI]
+    var wilderfield_aqi_history = []; // array of [timestamp, PM2.5 AQI]
+    var winside_aqi_history = []; // array of [timestamp, PM2.5 AQI]
+    var squidcave_aqi_history = []; // array of [timestamp, PM2.5 AQI]
 
     function sum(total, tuple) {
       return total + tuple[1];
@@ -160,7 +141,8 @@
       history.push([timestamp, value]);
 
       // remove old
-      while (history.length > 0 && (timestamp - history[0][0]) > 600) { // ten minutes
+      while (history.length > 0 && timestamp - history[0][0] > 600) {
+        // ten minutes
         history.shift();
       }
 
@@ -200,7 +182,8 @@
     function update_body(data, div_classname) {
       const div = document.getElementsByClassName(div_classname)[0];
       const lastUpdateDate = new Date(data.response_date * 1000);
-      div.getElementsByClassName("lastupdate")[0].innerHTML = lastUpdateDate.toLocaleString();
+      div.getElementsByClassName("lastupdate")[0].innerHTML =
+        lastUpdateDate.toLocaleString();
       const temp_node = div.getElementsByClassName("temp")[0];
       temp_node.innerHTML = data.current_temp_f;
       const aqi_node = div.getElementsByClassName("currentaqi")[0];
@@ -209,11 +192,19 @@
       aqi_ave_node.innerHTML = data["pm2.5_aqi_ave"];
 
       //  color
-      if ((Date.now() - lastUpdateDate.getTime()) < 1800000) {  // half an hour
-        temp_node.parentElement.style.backgroundColor = mapTempColor(data.current_temp_f);
-        aqi_node.parentElement.style.backgroundColor = mapAQIColor(data["pm2.5_aqi"]);
-        aqi_ave_node.parentElement.style.backgroundColor = mapAQIColor(data["pm2.5_aqi"]);
-      } else { // stale
+      if (Date.now() - lastUpdateDate.getTime() < 1800000) {
+        // half an hour
+        temp_node.parentElement.style.backgroundColor = mapTempColor(
+          data.current_temp_f,
+        );
+        aqi_node.parentElement.style.backgroundColor = mapAQIColor(
+          data["pm2.5_aqi"],
+        );
+        aqi_ave_node.parentElement.style.backgroundColor = mapAQIColor(
+          data["pm2.5_aqi"],
+        );
+      } else {
+        // stale
         temp_node.parentElement.style.backgroundColor = "grey";
         aqi_node.parentElement.style.backgroundColor = "grey";
         aqi_ave_node.parentElement.style.backgroundColor = "grey";
@@ -225,20 +216,43 @@
     }
 
     function update_dashboard() {
-      fetch_data("http://purpleair-9826.localdomain/json?live=true", function (data) {
-        // Outdoor sensor has two particle counters. Hack it for now.
-        data["pm2.5_aqi"] = Math.round((data["pm2.5_aqi"] + data["pm2.5_aqi_b"]) / 2);
-        data["pm2.5_aqi_ave"] = update_moving_average(timestamp_now(), data["pm2.5_aqi"], wilderfield_aqi_history);
-        update_body(data, "wilderfield");
-      });
-      fetch_data("http://purpleair-791d.localdomain/json?live=true", function (data) {
-        data["pm2.5_aqi_ave"] = update_moving_average(timestamp_now(), data["pm2.5_aqi"], winside_aqi_history);
-        update_body(data, "winside");
-      });
-      fetch_data("http://purpleair-f6ca.localdomain/json?live=true", function (data) {
-        data["pm2.5_aqi_ave"] = update_moving_average(timestamp_now(), data["pm2.5_aqi"], squidcave_aqi_history);
-        update_body(data, "squidcave");
-      });
+      fetch_data(
+        "http://purpleair-9826.localdomain/json?live=true",
+        function (data) {
+          // Outdoor sensor has two particle counters. Hack it for now.
+          data["pm2.5_aqi"] = Math.round(
+            (data["pm2.5_aqi"] + data["pm2.5_aqi_b"]) / 2,
+          );
+          data["pm2.5_aqi_ave"] = update_moving_average(
+            timestamp_now(),
+            data["pm2.5_aqi"],
+            wilderfield_aqi_history,
+          );
+          update_body(data, "wilderfield");
+        },
+      );
+      fetch_data(
+        "http://purpleair-791d.localdomain/json?live=true",
+        function (data) {
+          data["pm2.5_aqi_ave"] = update_moving_average(
+            timestamp_now(),
+            data["pm2.5_aqi"],
+            winside_aqi_history,
+          );
+          update_body(data, "winside");
+        },
+      );
+      fetch_data(
+        "http://purpleair-f6ca.localdomain/json?live=true",
+        function (data) {
+          data["pm2.5_aqi_ave"] = update_moving_average(
+            timestamp_now(),
+            data["pm2.5_aqi"],
+            squidcave_aqi_history,
+          );
+          update_body(data, "squidcave");
+        },
+      );
     }
 
     function mapAQIColor(value) {
@@ -250,7 +264,7 @@
         return "orange";
       } else if (value < 40) {
         return "red";
-      } else if (value < 50){
+      } else if (value < 50) {
         return "mediumpurple";
       } else {
         return "saddlebrown";
@@ -278,7 +292,7 @@
     }
 
     update_dashboard();
-    var intervalID = window.setInterval(function() {
+    var intervalID = window.setInterval(function () {
       update_dashboard();
     }, 30000);
   </script>
