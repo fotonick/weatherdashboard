@@ -57,8 +57,8 @@
     </style>
   </head>
   <body>
-    <div class="wilderfield">
-      <div class="name">Outside</div>
+    <div class="attic">
+      <div class="name">Attic</div>
       <div class="lastupdate"></div>
       <div class="row">
         <div class="block">
@@ -127,7 +127,7 @@
 
     const MIN_HISTORY = 4; // don't report any 10-minute average until we have MIN_HISTORY samples
 
-    var wilderfield_aqi_history = []; // array of [timestamp, PM2.5 AQI]
+    var attic_aqi_history = []; // array of [timestamp, PM2.5 AQI]
     var winside_aqi_history = []; // array of [timestamp, PM2.5 AQI]
     var squidcave_aqi_history = []; // array of [timestamp, PM2.5 AQI]
 
@@ -226,9 +226,9 @@
           data["pm2.5_aqi_ave"] = update_moving_average(
             timestamp_now(),
             data["pm2.5_aqi"],
-            wilderfield_aqi_history,
+            attic_aqi_history,
           );
-          update_body(data, "wilderfield");
+          update_body(data, "attic");
         },
       );
       fetch_data(
