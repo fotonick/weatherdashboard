@@ -65,13 +65,13 @@ function update_body(data, div_classname) {
   if (Date.now() - lastUpdateDate.getTime() < 1800000) {
     // half an hour
     temp_node.parentElement.style.backgroundColor = mapTempColor(
-      data.current_temp_f,
+      data.current_temp_f
     );
     aqi_node.parentElement.style.backgroundColor = mapAQIColor(
-      data["pm2.5_aqi"],
+      data["pm2.5_aqi"]
     );
     aqi_ave_node.parentElement.style.backgroundColor = mapAQIColor(
-      data["pm2.5_aqi"],
+      data["pm2.5_aqi"]
     );
   } else {
     // stale
@@ -127,15 +127,15 @@ function update_outside() {
     function (data) {
       // Outdoor sensor has two particle counters. Hack it for now.
       data["pm2.5_aqi"] = Math.round(
-        (data["pm2.5_aqi"] + data["pm2.5_aqi_b"]) / 2,
+        (data["pm2.5_aqi"] + data["pm2.5_aqi_b"]) / 2
       );
       data["pm2.5_aqi_ave"] = update_moving_average(
         timestamp_now(),
         data["pm2.5_aqi"],
-        outside_aqi_history,
+        outside_aqi_history
       );
       update_body(data, "outside");
-    },
+    }
   );
 }
 
@@ -145,15 +145,15 @@ function update_attic() {
     function (data) {
       // Outdoor sensor has two particle counters. Hack it for now.
       data["pm2.5_aqi"] = Math.round(
-        (data["pm2.5_aqi"] + data["pm2.5_aqi_b"]) / 2,
+        (data["pm2.5_aqi"] + data["pm2.5_aqi_b"]) / 2
       );
       data["pm2.5_aqi_ave"] = update_moving_average(
         timestamp_now(),
         data["pm2.5_aqi"],
-        attic_aqi_history,
+        attic_aqi_history
       );
       update_body(data, "attic");
-    },
+    }
   );
 }
 
@@ -164,10 +164,10 @@ function update_livingroom() {
       data["pm2.5_aqi_ave"] = update_moving_average(
         timestamp_now(),
         data["pm2.5_aqi"],
-        winside_aqi_history,
+        winside_aqi_history
       );
       update_body(data, "winside");
-    },
+    }
   );
 }
 
@@ -178,9 +178,9 @@ function update_squidcave() {
       data["pm2.5_aqi_ave"] = update_moving_average(
         timestamp_now(),
         data["pm2.5_aqi"],
-        squidcave_aqi_history,
+        squidcave_aqi_history
       );
       update_body(data, "squidcave");
-    },
+    }
   );
 }
