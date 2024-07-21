@@ -268,7 +268,7 @@
       //   },
       // );
       fetch_data(
-        "http://purpleair-791d.localdomain/json?live=true",
+        "http://purpleair-f6ca.localdomain/json?live=true",
         function (data) {
           data["pm2.5_aqi_ave"] = update_moving_average(
             timestamp_now(),
@@ -279,7 +279,7 @@
         },
       );
       fetch_data(
-        "http://purpleair-f6ca.localdomain/json?live=true",
+        "http://purpleair-791d.localdomain/json?live=true",
         function (data) {
           data["pm2.5_aqi_ave"] = update_moving_average(
             timestamp_now(),
