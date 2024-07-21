@@ -1,0 +1,39 @@
+body {
+  background: black;
+  color: white;
+}
+
+body > div {
+  width: 32%;
+  float: left;
+}
+
+.row {
+  height: 710px;
+}
+
+.block {
+  display: block;
+  float: left;
+  width: 260px;
+  margin: 7px;
+  padding: 10px 10px;
+  background: lightgreen;
+  text-align: center;
+  border-radius: 20px;
+  text-shadow: 2px 2px 20px #ffffff;
+  color: black;
+}
+
+.block div {
+  font-size: 100px;
+}
+
+.name {
+  text-align: left;
+  margin-left: 10px;
+}
+
+.lastupdate {
+  padding: 0 10px;
+}
