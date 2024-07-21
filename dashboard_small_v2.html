@@ -57,8 +57,8 @@
     </style>
   </head>
   <body>
-    <div class="attic">
-      <div class="name">Attic</div>
+    <div class="outside">
+      <div class="name">Outside</div>
       <div class="lastupdate"></div>
       <div class="row">
         <div class="block">
@@ -78,6 +78,27 @@
       </div>
     </div>
 
+    <!-- <div class="attic">
+      <div class="name">Attic</div>
+      <div class="lastupdate"></div>
+      <div class="row">
+        <div class="block">
+          Current
+          <div class="currentaqi"></div>
+        </div>
+
+        <div class="block">
+          10 Minute
+          <div class="10minaqi"></div>
+        </div>
+
+        <div class="block">
+          Temp
+          <div class="temp"></div>
+        </div>
+      </div>
+    </div>
+ -->
     <div class="squidcave">
       <div class="name">Squid Cave</div>
       <div class="lastupdate"></div>
@@ -127,7 +148,8 @@
 
     const MIN_HISTORY = 4; // don't report any 10-minute average until we have MIN_HISTORY samples
 
-    var attic_aqi_history = []; // array of [timestamp, PM2.5 AQI]
+    var outside_aqi_history = []; // array of [timestamp, PM2.5 AQI]
+    // var attic_aqi_history = []; // array of [timestamp, PM2.5 AQI]
     var winside_aqi_history = []; // array of [timestamp, PM2.5 AQI]
     var squidcave_aqi_history = []; // array of [timestamp, PM2.5 AQI]
 
@@ -216,7 +238,7 @@
 
     function update_dashboard() {
       fetch_data(
-        "http://purpleair-9826.localdomain/json?live=true",
+        "http://purpleair-2f5c.localdomain/json?live=true",
         function (data) {
           // Outdoor sensor has two particle counters. Hack it for now.
           data["pm2.5_aqi"] = Math.round(
@@ -225,11 +247,26 @@
           data["pm2.5_aqi_ave"] = update_moving_average(
             timestamp_now(),
             data["pm2.5_aqi"],
-            attic_aqi_history,
+            outside_aqi_history,
           );
-          update_body(data, "attic");
+          update_body(data, "outside");
         },
       );
+      // fetch_data(
+      //   "http://purpleair-9826.localdomain/json?live=true",
+      //   function (data) {
+      //     // Outdoor sensor has two particle counters. Hack it for now.
+      //     data["pm2.5_aqi"] = Math.round(
+      //       (data["pm2.5_aqi"] + data["pm2.5_aqi_b"]) / 2,
+      //     );
+      //     data["pm2.5_aqi_ave"] = update_moving_average(
+      //       timestamp_now(),
+      //       data["pm2.5_aqi"],
+      //       attic_aqi_history,
+      //     );
+      //     update_body(data, "attic");
+      //   },
+      // );
       fetch_data(
         "http://purpleair-791d.localdomain/json?live=true",
         function (data) {
